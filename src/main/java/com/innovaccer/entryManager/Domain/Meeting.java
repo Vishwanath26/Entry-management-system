@@ -1,6 +1,5 @@
 package com.innovaccer.entryManager.Domain;
 
-import org.joda.time.DateTime;
 
 import javax.persistence.*;
 
@@ -10,7 +9,7 @@ public class Meeting {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
-    @Column(name="vhm_id", nullable=false)
+    @Column(name="vhm_id")
     private Long vhmId = 0L;
 
     @Column(name="visitor_id")
@@ -20,10 +19,10 @@ public class Meeting {
     private Long hostId;
 
     @Column(name="checkin_time")
-    private DateTime checkinTime;
+    private String checkinTime;
 
     @Column(name="checkout_time")
-    private DateTime checkoutTime;
+    private String checkoutTime;
 
     public Long getVhmId() {
         return vhmId;
@@ -37,11 +36,20 @@ public class Meeting {
         return hostId;
     }
 
-    public DateTime getCheckinTime() {
+    public String getCheckinTime() {
         return checkinTime;
     }
 
-    public DateTime getCheckoutTime() {
+    public String getCheckoutTime() {
         return checkoutTime;
+    }
+
+    public Meeting(){}
+
+    public Meeting(Long visitorId, Long hostId, String checkinTime, String checkoutTime) {
+        this.visitorId = visitorId;
+        this.hostId = hostId;
+        this.checkinTime = checkinTime;
+        this.checkoutTime = checkoutTime;
     }
 }

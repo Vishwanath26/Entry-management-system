@@ -10,17 +10,20 @@ import javax.validation.constraints.Size;
 public class Host {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    @Column(name="host_id", nullable=false)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "host_id")
     private Long hostId = 0L;
 
-    @Size(max=10)
-    @Column(name = "phone_number",unique = true)
+    @Size(max = 10)
+    @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
     @Email
-    @Column(name="email_id",unique = true)
+    @Column(name = "email_id", unique = true)
     private String emailId;
+
+    @Column(name = "name")
+    private String hostName;
 
     public Long getHostId() {
         return hostId;
@@ -44,5 +47,18 @@ public class Host {
 
     public void setEmailId(String emailId) {
         this.emailId = emailId;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public Host(){
+
+    }
+    public Host(@Size(max = 10) String phoneNumber, @Email String emailId, String hostName) {
+        this.phoneNumber = phoneNumber;
+        this.emailId = emailId;
+        this.hostName = hostName;
     }
 }
