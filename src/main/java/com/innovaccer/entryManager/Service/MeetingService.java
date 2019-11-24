@@ -10,6 +10,7 @@ import com.innovaccer.entryManager.Domain.Visitor;
 import com.innovaccer.entryManager.Repository.HostRepository;
 import com.innovaccer.entryManager.Repository.MeetingRepository;
 import com.innovaccer.entryManager.Repository.VisitorRepository;
+import com.innovaccer.entryManager.Service.MessageService.SmsService;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,9 @@ public class MeetingService {
 
     @Autowired
     HostRepository hostRepository;
+
+    @Autowired
+    SmsService smsService;
 
     private Logger logger = LoggerFactory.getLogger(MeetingService.class.getName());
 
@@ -123,5 +127,6 @@ public class MeetingService {
         host = hostRepository.save(host);
         Meeting meeting  = new Meeting(visitor.getVisitorId(),host.getHostId(), DateTime.now().toString(),null);
         meetingRepository.save(meeting);
+        smsService.sendSms(host.getPhoneNumber(),"Person " + visitor.getVisitorName() + " meeting has been scheduled successfully with " + host.getHostName());
     }
 }
