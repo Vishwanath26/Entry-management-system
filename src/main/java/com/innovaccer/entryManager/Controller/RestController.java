@@ -16,16 +16,12 @@ public class RestController {
     MeetingService meetingService;
 
     @PostMapping("/meeting/set")
-    public ResponseEntity<ApiResponse> setVisitorMeeting(@RequestBody MeetingRequest meetingRequest)
-    {
-       ApiResponse apiResponse = meetingService.setMeetingForVisitor(meetingRequest);
-       if(apiResponse.getResponseType().equals("failed"))
-       {
-           return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
-       }
-       else
-       {
-           return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-       }
+    public ResponseEntity<ApiResponse> setVisitorMeeting(@RequestBody MeetingRequest meetingRequest) {
+        ApiResponse apiResponse = meetingService.setMeetingForVisitor(meetingRequest);
+        if (apiResponse.getResponseType().equals("failed")) {
+            return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+        } else {
+            return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        }
     }
 }
