@@ -1,0 +1,24 @@
+.App {
+  text-align: center;
+  background: "../src/HomePage.jpg";
+}
+
+.App-logo {
+  height: 100vmin;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.wrapper {
+  text-align: center;
+  position: absolute;
+  top: 35%;
+  left: 45%;
+  right: 45%;
+}
+
+.App-link {
+  color: #09d3ac;
+}
