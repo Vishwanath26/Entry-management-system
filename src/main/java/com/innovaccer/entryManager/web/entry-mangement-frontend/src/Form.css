@@ -1,0 +1,22 @@
+.body {
+    backgroundColor: white;
+    
+}
+.main {
+    backgroundColor: white;
+  
+}
+.paper {
+    display: 'flex';
+    flexDirection: 'column';
+    alignItems: 'center';
+    position: absolute;
+  top: 25%;
+  left: 35%;
+  right: 35%;
+}
+
+
+.submit {
+    margin: theme.spacing(3, 0, 2),
+}

@@ -1,9 +1,7 @@
 package com.innovaccer.entryManager.Service;
 
-import com.innovaccer.entryManager.DTO.ApiResponse;
-import com.innovaccer.entryManager.DTO.HostDto;
-import com.innovaccer.entryManager.DTO.MeetingRequest;
-import com.innovaccer.entryManager.DTO.VisitorDto;
+import com.innovaccer.entryManager.DTO.*;
+import com.innovaccer.entryManager.Domain.Email;
 import com.innovaccer.entryManager.Domain.Host;
 import com.innovaccer.entryManager.Domain.Meeting;
 import com.innovaccer.entryManager.Domain.Visitor;
@@ -32,7 +30,11 @@ public class MeetingService {
     HostRepository hostRepository;
 
     @Autowired
-    SmsService smsService;
+    SendSmsService sendSmsService;
+
+    @Autowired
+    EmailService emailService;
+
 
     private Logger logger = LoggerFactory.getLogger(MeetingService.class.getName());
 
@@ -43,90 +45,93 @@ public class MeetingService {
             return new ApiResponse("Improper data found make sure all values are filled", "failed");
         }
 
-         String visitorValidationMessage = getVisitorValidationMsg(meetingRequest.getVisitorDto());
+        String visitorValidationMessage = getVisitorValidationMsg(meetingRequest.getVisitorDto());
         //in-valid visitor
-        if(!StringUtils.isEmpty(visitorValidationMessage))
-        {
-            return new ApiResponse("Visitor " + visitorValidationMessage,"failed");
+        if (!StringUtils.isEmpty(visitorValidationMessage)) {
+            return new ApiResponse("Visitor " + visitorValidationMessage, "failed");
         }
 
         String hostValidationMsg = getHostValidationMsg(meetingRequest.getHostDto());
         //in-valid host
-        if(!StringUtils.isEmpty(hostValidationMsg))
-        {
-            return new ApiResponse("Host " + hostValidationMsg,"failed");
+        if (!StringUtils.isEmpty(hostValidationMsg)) {
+            return new ApiResponse("Host " + hostValidationMsg, "failed");
         }
 
         //check for active check-in of current visitor
         boolean isCurrentVisitorAlreadyCheckedIn = isCurrentVisitorAlreadyCheckedIn(meetingRequest.getVisitorDto());
-        if(isCurrentVisitorAlreadyCheckedIn)
-        {
-            return new ApiResponse("Visitor already checked-in with email " + meetingRequest.getVisitorDto().getVisitorEmailId() +  "first checkout","failed");
+        if (isCurrentVisitorAlreadyCheckedIn) {
+            return new ApiResponse("Visitor already checked-in with email " + meetingRequest.getVisitorDto().getVisitorEmailId() + "first checkout", "failed");
         }
 
         //save the meeting
         saveMeeting(meetingRequest);
-        return new ApiResponse("Meeting scheduled","passed");
+
+        //send sms
+        sendSMSToHost(meetingRequest);
+        return new ApiResponse("Meeting scheduled", "passed");
     }
 
-    private String getVisitorValidationMsg(VisitorDto visitorDto)
-    {
-        if(StringUtils.isEmpty(visitorDto.getVisitorEmailId()))
-        {
+    private String getVisitorValidationMsg(VisitorDto visitorDto) {
+        if (StringUtils.isEmpty(visitorDto.getVisitorEmailId())) {
             return "emailId cannot be null or empty";
         }
 
-        if(StringUtils.isEmpty(visitorDto.getVisitorPhoneNum()))
-        {
+        if (StringUtils.isEmpty(visitorDto.getVisitorPhoneNum())) {
             return "phoneNumber cannot be null or empty";
         }
 
-        if(StringUtils.isEmpty(visitorDto.getVisitorName()))
-        {
+        if (StringUtils.isEmpty(visitorDto.getVisitorName())) {
             return "name cannot be null or empty";
         }
         return null;
     }
 
-    private String getHostValidationMsg(HostDto hostDto)
-    {
-        if(StringUtils.isEmpty(hostDto.getHostEmailId()))
-        {
+    private String getHostValidationMsg(HostDto hostDto) {
+        if (StringUtils.isEmpty(hostDto.getHostEmailId())) {
             return "emailId cannot be null or empty";
         }
 
-        if(StringUtils.isEmpty(hostDto.getHostPhoneNumber()))
-        {
+        if (StringUtils.isEmpty(hostDto.getHostPhoneNumber())) {
             return "phoneNumber cannot be null or empty";
         }
 
-        if(StringUtils.isEmpty(hostDto.getHostName()))
-        {
+        if (StringUtils.isEmpty(hostDto.getHostName())) {
             return "name cannot be null or empty";
         }
         return null;
     }
 
-    private boolean isCurrentVisitorAlreadyCheckedIn(VisitorDto visitorDto)
-    {
-      Visitor visitor =  visitorRepository.getVisitorByEmailId(visitorDto.getVisitorEmailId());
-      if(visitor!=null && visitor.getVisitorId()!=null) {
-          int meetingRepositoryActiveCheckedInCnt = meetingRepository.getActiveCheckedInCnt(visitor.getVisitorId());
-          return meetingRepositoryActiveCheckedInCnt > 0;
-      }
-      return false;
+    private boolean isCurrentVisitorAlreadyCheckedIn(VisitorDto visitorDto) {
+        Visitor visitor = visitorRepository.getVisitorByEmailId(visitorDto.getVisitorEmailId());
+        if (visitor != null && visitor.getVisitorId() != null) {
+            int meetingRepositoryActiveCheckedInCnt = meetingRepository.getActiveCheckedInCnt(visitor.getVisitorId());
+            return meetingRepositoryActiveCheckedInCnt > 0;
+        }
+        return false;
     }
 
-    private void saveMeeting(MeetingRequest meetingRequest)
-    {
+    private void saveMeeting(MeetingRequest meetingRequest) {
         //save visitor
-        Visitor visitor = new Visitor(0L , meetingRequest.getVisitorDto().getVisitorPhoneNum().trim(),meetingRequest.getVisitorDto().getVisitorEmailId().trim(),meetingRequest.getVisitorDto().getVisitorName().trim());
+        Visitor visitor = new Visitor(0L, meetingRequest.getVisitorDto().getVisitorPhoneNum().trim(), meetingRequest.getVisitorDto().getVisitorEmailId().trim(), meetingRequest.getVisitorDto().getVisitorName().trim());
         visitor = visitorRepository.save(visitor);
-
-        Host host = new Host(meetingRequest.getHostDto().getHostPhoneNumber().trim(),meetingRequest.getHostDto().getHostEmailId().trim(),meetingRequest.getHostDto().getHostName().trim());
-        host = hostRepository.save(host);
-        Meeting meeting  = new Meeting(visitor.getVisitorId(),host.getHostId(), DateTime.now().toString(),null);
+        Host host;
+        if (hostRepository.checkActiveHostByEmail(meetingRequest.getHostDto().getHostEmailId()) <= 0) {
+            host = new Host(meetingRequest.getHostDto().getHostPhoneNumber().trim(), meetingRequest.getHostDto().getHostEmailId().trim(), meetingRequest.getHostDto().getHostName().trim());
+            host = hostRepository.save(host);
+        } else {
+            host = hostRepository.getHostByEmailId(meetingRequest.getHostDto().getHostEmailId());
+        }
+        Meeting meeting = new Meeting(visitor.getVisitorId(), host.getHostId(), DateTime.now().toString(), null);
         meetingRepository.save(meeting);
-        smsService.sendSms(host.getPhoneNumber(),"Person " + visitor.getVisitorName() + " meeting has been scheduled successfully with " + host.getHostName());
+        sendSmsService.sendSms(host.getPhoneNumber(),"Person " + visitor.getVisitorName() + " meeting has been scheduled successfully with " + host.getHostName());
+    }
+
+    private void sendSMSToHost(MeetingRequest meetingRequest) {
+        //send sms
+        Host host = hostRepository.getHostByEmailId(meetingRequest.getHostDto().getHostEmailId());
+        Visitor visitor = visitorRepository.getVisitorByEmailId(meetingRequest.getVisitorDto().getVisitorEmailId());
+        String messageToHost = "Hi " + host.getHostName() + "your meeting is scheduled with " + visitor.getVisitorName() + "having email " + visitor.getEmailId() + "and phone number " + visitor.getPhoneNumber();
+        //System.out.println(sendSmsService.sendSms(host.getPhoneNumber(), messageToHost));
+        emailService.sendEmail(new Email("Information regarding meeting scheduled",host.getEmailId(), EmailTemplate.HOST_INVITATION_TEMPLATE,visitor,null));
     }
 }
