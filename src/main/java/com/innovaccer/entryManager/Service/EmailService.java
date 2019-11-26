@@ -32,7 +32,6 @@ public class EmailService implements EnvironmentAware {
 
     @Override
     public void setEnvironment(Environment environment) {
-
         this.environment = environment;
         this.gmailSenderEmailId = environment.getProperty("gmailSenderEmail");
         this.gmailSenderPassword = environment.getProperty("gmailSenderPassword");
