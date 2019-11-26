@@ -73,10 +73,19 @@ class Form extends React.Component {
       body: JSON.stringify(meetingRequest)
     })
       .then(response => response.text())
-      .then(data => console.log(data))
-      .catch(error => console.log("Error detected: " + error));
-
-    this.props.toggleForms();
+      .then(data => {
+        if(data)
+        {
+          data = JSON.parse(data);
+        }
+        if (data.responseType === "passed") {
+          console.log(data);
+          this.props.checkInSuccess();
+        } else {
+          console.log(data);
+          this.props.checkInFailure();
+        }
+      });
   }
   validateField(fieldName, value) {
     let fieldValidationErrors = this.state.formErrors;
