@@ -20,21 +20,33 @@ User should have a basic internet connectivity as sms and email service require 
    
    # Backend
    Backend is made using Java Spring Boot framework(with JPA)
+   
    1 - Controller - There is one single RESTController
+   
    2 - Domain - There are 4 domains for Email, Host, Visitor and Meeting.
+   
    3 - DTO's(Data Transfer Objects) - 
+   
         a) - There is an Email template DTO with beautiful HTML templates for emails.
+        
         b) - There are other DTO's for ApiResponse, MeetingRequest, CheckOutRequest, HostDTO and VisitorDTO.
+        
    4 - Repository - There are 3 repositories for interaction with database - 
+   
         a) - VisitorRepository   b) - MeetingRepository   c) - HostRepository
+        
    5 - Service  - This is the main part of the project, we have following services - 
+   
         a) - MeetingService - this service sets the meeting for visitor where first visitor is checked in meeting
              table is checked for making sure no duplicate check-in before checkout.
              It then saves the visitor details, host details(if not found in hostDB) and meeting details and then
              trigger email and message to host about meeting in seperate thread.
+             
         b) - EmailService - Gmail SMTP service is used for sending email added with beautiful HTML templates.
+        
         c) - SendSmsService - Textlocal API(https://www.textlocal.in/) is used for sending messages which only
              operates between 9 AM to 9 PM.
+             
         d) - CheckOutService - CheckOut service first checks for active check-in of current visitor, in case of
              which it checks him out by updating checkout time in DB and sends Email to visitor regarding his visit
              details, after which meeting, visitor are deleted from respective DB's(there can be a single host to all
