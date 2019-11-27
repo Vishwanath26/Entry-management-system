@@ -68,7 +68,7 @@ public class MeetingService {
         //save the meeting
         saveMeeting(meetingRequest);
 
-        //send email and sms in different thread
+        //send email and sms
         new Thread(()->{
             sendSmsAndMailToHost(meetingRequest);
         }).start();
@@ -132,12 +132,12 @@ public class MeetingService {
 
 
     public void sendSmsAndMailToHost(MeetingRequest meetingRequest) {
-        //send sms
+        //send sms and email
         Host host = hostRepository.getHostByEmailId(meetingRequest.getHostDto().getHostEmailId());
         Visitor visitor = visitorRepository.getVisitorByEmailId(meetingRequest.getVisitorDto().getVisitorEmailId());
         String messageToHost = "Hi " + host.getHostName() + " your meeting is scheduled with " + visitor.getVisitorName() + " having email " + visitor.getEmailId() + " and phone number " + visitor.getPhoneNumber();
-        //logger.info(sendSmsService.sendSms(host.getPhoneNumber(), messageToHost));
-        //emailService.sendEmail(new Email("Information regarding meeting scheduled", host.getEmailId(), EmailTemplate.HOST_INVITATION_TEMPLATE, visitor, "checkin"));
-        logger.info("email and sms sent");
+        logger.info(sendSmsService.sendSms(host.getPhoneNumber(), messageToHost));
+        emailService.sendEmail(new Email("Information regarding meSimple Floweting scheduled", host.getEmailId(), EmailTemplate.HOST_INVITATION_TEMPLATE, visitor, "checkin"));
+        logger.info("email ans sms sent");
     }
 }

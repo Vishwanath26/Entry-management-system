@@ -100,7 +100,7 @@ public class CheckOutService {
         //send email regarding meeting details, host details to checked out visitor
         Visitor visitor = visitorRepository.getVisitorByEmailId(checkOutRequest.getVisitorDto().getVisitorEmailId());
         Meeting meeting = meetingRepository.getAllDetails(visitor.getVisitorId());
-        //emailService.sendEmail(new Email("Information regarding visit details", visitor.getEmailId(), EmailTemplate.VISITOR_CHECKOUT_TEMPLATE, visitor, "checkout"));
+        emailService.sendEmail(new Email("Information regarding visit details", visitor.getEmailId(), EmailTemplate.VISITOR_CHECKOUT_TEMPLATE, visitor, "checkout"));
         meetingRepository.deleteMeeting(visitor.getVisitorId());
         visitorRepository.deleteVisitor(visitor.getVisitorId());
     }

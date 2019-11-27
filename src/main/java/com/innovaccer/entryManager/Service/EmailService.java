@@ -7,6 +7,9 @@ import com.innovaccer.entryManager.Domain.Meeting;
 import com.innovaccer.entryManager.Domain.Visitor;
 import com.innovaccer.entryManager.Repository.HostRepository;
 import com.innovaccer.entryManager.Repository.MeetingRepository;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
@@ -15,6 +18,11 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -123,6 +131,18 @@ public class EmailService implements EnvironmentAware {
 
     }
 
+    private String handleDateTime(String datetime) {
+        LocalDate date = null;
+        LocalTime time = null;
+        try {
+            date = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").parseDateTime(datetime).toLocalDate();
+            time = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").parseDateTime(datetime).toLocalTime().withMillisOfSecond(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return date.toString() + " " + time.toString();
+    }
+
     private String updateEmailData(String emailTemplate, Visitor visitor, String activityType) {
         if (activityType == "checkin") {
             emailTemplate = emailTemplate.replace("{meetingPerson}", visitor.getVisitorName() + "<br></br>");
@@ -134,8 +154,8 @@ public class EmailService implements EnvironmentAware {
             System.out.println(meeting);
             emailTemplate = emailTemplate.replace("{visitorName}", visitor.getVisitorName() + "<br></br>");
             emailTemplate = emailTemplate.replace("{visitorMobile}", visitor.getPhoneNumber() + "<br></br>");
-            emailTemplate = emailTemplate.replace("{checkInTime}", meeting.getCheckinTime() + "<br></br>");
-            emailTemplate = emailTemplate.replace("{checkOutTime}", meeting.getCheckoutTime() + "<br></br>");
+            emailTemplate = emailTemplate.replace("{checkInTime}", handleDateTime(meeting.getCheckinTime()) + "<br></br>");
+            emailTemplate = emailTemplate.replace("{checkOutTime}", handleDateTime(meeting.getCheckoutTime()) + "<br></br>");
             emailTemplate = emailTemplate.replace("{hostName}", hostRepository.getHostByHostId(meeting.getHostId()).getHostName() + "<br></br>");
         }
         return emailTemplate;
