@@ -86,3 +86,9 @@ after which it deletes the meeting details from database.
    3) Check-Out without Check-In : In this case backend checks for it and if there is no visitor email found
                                            in meeting table then, UI throws failure alert "Check-in First".
 
+# Screenshots and Working Video
+   Screenshots and working video can be found here - 
+   https://drive.google.com/open?id=1Gz0SohAq0eMYLG5H3e2s1hz9QG94YmqC
+   
+
+# Thanks
