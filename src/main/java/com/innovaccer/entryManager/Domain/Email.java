@@ -5,10 +5,18 @@ public class Email {
     private String reciepent;
     private String template;
     private Visitor visitor;
-    private Host host;
+    private String activityType;
 
     public String getTemplate() {
         return template;
+    }
+
+    public String getActivityType() {
+        return activityType;
+    }
+
+    public void setActivityType(String activityType) {
+        this.activityType = activityType;
     }
 
     public String getSubject() {
@@ -33,12 +41,12 @@ public class Email {
     }
 
 
-    public Email(String subject, String reciepent, String template, Visitor visitor, Host host) {
+    public Email(String subject, String reciepent, String template, Visitor visitor, String activityType) {
         this.subject = subject;
         this.reciepent = reciepent;
         this.template = template;
         this.visitor = visitor;
-        this.host = host;
+        this.activityType = activityType;
     }
 
     private boolean preValidate(String classFieldName, Object emailInfo) {
@@ -82,11 +90,4 @@ public class Email {
         this.visitor = visitor;
     }
 
-    public Host getHost() {
-        return host;
-    }
-
-    public void setHost(Host host) {
-        this.host = host;
-    }
 }

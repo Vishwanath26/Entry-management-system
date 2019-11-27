@@ -3,6 +3,7 @@ import logo from "../src/HomePage.jpg";
 import "./App.css";
 import Form from "./Home";
 import Button from "@material-ui/core/Button";
+import Alert from "./Alert.js";
 
 class App extends React.Component {
   constructor() {
@@ -39,31 +40,35 @@ class App extends React.Component {
   }
 
   handleCheckInSuccess() {
-    console.log("reached here");
-
     this.setState({
-      checkInSuccess: true
+      checkInSuccess: !this.state.checkInSuccess
     });
+    this.handleCheckInClick();
   }
   handleCheckInFailure() {
     this.setState({
-      checkInFailure: true
+      checkInFailure: !this.state.checkInFailure
     });
+    this.handleCheckInClick();
   }
   handleCheckOutSuccess() {
     this.setState({
-      checkOutSuccess: true
+      checkOutSuccess: !this.state.checkOutSuccess
     });
+    this.handleCheckOutClick();
   }
   handleCheckOutFailure() {
     this.setState({
-      checkOutFailure: true
+      checkOutFailure: !this.state.checkOutFailure
     });
+    this.handleCheckOutClick();
   }
+  
   render() {
+    const alert = this.props.alert;
     return (
       <div className="App">
-        <img src={logo} className="App-logo" alt="logo" />{" "}
+        {/* <img src={logo} className="App-logo" alt="logo" />{" "} */}
         {this.state.hideIcons ? null : (
           <div className="wrapper">
             <Button
@@ -81,7 +86,6 @@ class App extends React.Component {
             <br />
             <br />
             <Button
-              className="btn"
               type="submit"
               size="large"
               variant="contained"
@@ -108,10 +112,18 @@ class App extends React.Component {
             checkOutFailure={this.handleCheckOutFailure.bind(this)}
           />
         ) : null}
-        {this.state.checkInSuccess ? <h1>"Check-In is successful"</h1> : null}
-        {this.state.checkInFailure ? <h1>"Please Check-Out first"</h1> : null}
-        {this.state.checkOutSuccess ? <h1>"Check-Out is successful"</h1> : null}
-        {this.state.checkOutFailure ? <h1>"Please Check-In first"</h1> : null}
+        {this.state.checkInSuccess ? (
+          <Alert msg="Check-In is successful" type="Success" />
+        ) : null}
+        {this.state.checkInFailure ? (
+          <Alert msg="Please Check-Out first" type="Failure" />
+        ) : null}
+        {this.state.checkOutSuccess ? (
+          <Alert msg="Check-Out is successful" type="Success" />
+        ) : null}
+        {this.state.checkOutFailure ? (
+          <Alert msg="Please Check-In first" type="Failure" />
+        ) : null}
       </div>
     );
   }

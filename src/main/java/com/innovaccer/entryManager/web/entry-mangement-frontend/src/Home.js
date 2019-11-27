@@ -44,9 +44,37 @@ class Form extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.validateField = this.validateField.bind(this);
     this.setMeeting = this.setMeeting.bind(this);
+    this.backendFetchApiCall = this.backendFetchApiCall.bind(this);
+    this.checkOutMeeting = this.checkOutMeeting.bind(this);
   }
 
   //Backend call for scheduling meeting
+  backendFetchApiCall(url, reqBody) {
+    //fetch api call
+    fetch(url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/plain",
+        "Content-Type": "application/json;charset=UTF-8"
+      },
+      body: JSON.stringify(reqBody)
+    })
+      .then(response => response.text())
+      .then(data => {
+        if (data) {
+          data = JSON.parse(data);
+        }
+        if (data.responseType === "passed") {
+          console.log(data);
+          if (this.props.formType === "in") this.props.checkInSuccess();
+          if (this.props.formType === "out") this.props.checkOutSuccess();
+        } else {
+          console.log(data);
+          if (this.props.formType === "in") this.props.checkInFailure();
+          if (this.props.formType === "out") this.props.checkOutFailure();
+        }
+      });
+  }
   setMeeting() {
     let meetingUrl = "http://localhost:8080/meeting/set";
     let meetingRequest = {
@@ -62,30 +90,18 @@ class Form extends React.Component {
         hostPhoneNumber: this.state.hostPhone
       }
     };
-    //fetch api call
-
-    fetch(meetingUrl, {
-      method: "POST",
-      headers: {
-        Accept: "application/json, text/plain",
-        "Content-Type": "application/json;charset=UTF-8"
-      },
-      body: JSON.stringify(meetingRequest)
-    })
-      .then(response => response.text())
-      .then(data => {
-        if(data)
-        {
-          data = JSON.parse(data);
-        }
-        if (data.responseType === "passed") {
-          console.log(data);
-          this.props.checkInSuccess();
-        } else {
-          console.log(data);
-          this.props.checkInFailure();
-        }
-      });
+    this.backendFetchApiCall(meetingUrl, meetingRequest);
+  }
+  checkOutMeeting() {
+    let checkOutUrl = "http://localhost:8080/meeting/checkout";
+    let checkOutRequest = {
+      visitorDto: {
+        visitorName: this.state.visitorName,
+        visitorEmailId: this.state.visitorEmail,
+        visitorPhoneNum: this.state.visitorPhone
+      }
+    };
+    this.backendFetchApiCall(checkOutUrl, checkOutRequest);
   }
   validateField(fieldName, value) {
     let fieldValidationErrors = this.state.formErrors;
@@ -303,14 +319,18 @@ class Form extends React.Component {
             )}
             <br />
             <Button
-              // disabled={
-              //   !(this.props.formType === "in"
-              //     ? this.state.formValid
-              //     : this.state.visitorNameValid &&
-              //       this.state.visitorEmailValid &&
-              //       this.state.visitorPhoneValid)
-              // }
-              onClick={this.setMeeting}
+              disabled={
+                !(this.props.formType === "in"
+                  ? this.state.formValid
+                  : this.state.visitorNameValid &&
+                    this.state.visitorEmailValid &&
+                    this.state.visitorPhoneValid)
+              }
+              onClick={
+                this.props.formType === "in"
+                  ? this.setMeeting
+                  : this.checkOutMeeting
+              }
               maxWidth
               variant="contained"
               color="primary"

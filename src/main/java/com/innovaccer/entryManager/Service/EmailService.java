@@ -3,7 +3,11 @@ package com.innovaccer.entryManager.Service;
 import com.innovaccer.entryManager.DTO.EmailTemplate;
 import com.innovaccer.entryManager.Domain.Email;
 import com.innovaccer.entryManager.Domain.Host;
+import com.innovaccer.entryManager.Domain.Meeting;
 import com.innovaccer.entryManager.Domain.Visitor;
+import com.innovaccer.entryManager.Repository.HostRepository;
+import com.innovaccer.entryManager.Repository.MeetingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,11 @@ public class EmailService implements EnvironmentAware {
     private static String gmailSenderPassword;
     private Environment environment;
 
+    @Autowired
+    MeetingRepository meetingRepository;
+
+    @Autowired
+    HostRepository hostRepository;
 
     @Override
     public void setEnvironment(Environment environment) {
@@ -44,7 +53,7 @@ public class EmailService implements EnvironmentAware {
         Properties props = getSMTPProperties();
         Session session = getSessionInfo(props);
         String emailContent = getEmailTemplate(emailInfo.getTemplate());
-        emailContent = updateEmailData(emailContent, emailInfo.getVisitor(), null);
+        emailContent = updateEmailData(emailContent, emailInfo.getVisitor(), emailInfo.getActivityType());
         try {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(gmailSenderEmailId));
@@ -107,16 +116,27 @@ public class EmailService implements EnvironmentAware {
                 case EmailTemplate.HOST_INVITATION_TEMPLATE:
                     response = EmailTemplate.HOST_INVITATION_TEMPLATE;
                     break;
+                case EmailTemplate.VISITOR_CHECKOUT_TEMPLATE:
+                    response = EmailTemplate.VISITOR_CHECKOUT_TEMPLATE;
             }
         return response;
 
     }
 
-    private String updateEmailData(String emailTemplate, Visitor visitor, Host host) {
-        if (visitor != null && host == null) {
-           emailTemplate =  emailTemplate.replace("{meetingPerson}",visitor.getVisitorName() + "<br></br>");
-           emailTemplate  = emailTemplate.replace("{meetingEmail}", visitor.getEmailId() +  "<br></br>");
-           emailTemplate = emailTemplate.replace("{meetingNumber}", visitor.getPhoneNumber() + "<br></br>");
+    private String updateEmailData(String emailTemplate, Visitor visitor, String activityType) {
+        if (activityType == "checkin") {
+            emailTemplate = emailTemplate.replace("{meetingPerson}", visitor.getVisitorName() + "<br></br>");
+            emailTemplate = emailTemplate.replace("{meetingEmail}", visitor.getEmailId() + "<br></br>");
+            emailTemplate = emailTemplate.replace("{meetingNumber}", visitor.getPhoneNumber() + "<br></br>");
+        }
+        if (activityType == "checkout") {
+            Meeting meeting = meetingRepository.getAllDetails(visitor.getVisitorId());
+            System.out.println(meeting);
+            emailTemplate = emailTemplate.replace("{visitorName}", visitor.getVisitorName() + "<br></br>");
+            emailTemplate = emailTemplate.replace("{visitorMobile}", visitor.getPhoneNumber() + "<br></br>");
+            emailTemplate = emailTemplate.replace("{checkInTime}", meeting.getCheckinTime() + "<br></br>");
+            emailTemplate = emailTemplate.replace("{checkOutTime}", meeting.getCheckoutTime() + "<br></br>");
+            emailTemplate = emailTemplate.replace("{hostName}", hostRepository.getHostByHostId(meeting.getHostId()).getHostName() + "<br></br>");
         }
         return emailTemplate;
     }

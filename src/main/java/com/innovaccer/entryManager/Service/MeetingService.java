@@ -13,9 +13,11 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 
 @Service
 public class MeetingService {
@@ -60,14 +62,17 @@ public class MeetingService {
         //check for active check-in of current visitor
         boolean isCurrentVisitorAlreadyCheckedIn = isCurrentVisitorAlreadyCheckedIn(meetingRequest.getVisitorDto());
         if (isCurrentVisitorAlreadyCheckedIn) {
-            return new ApiResponse("Visitor already checked-in with email " + meetingRequest.getVisitorDto().getVisitorEmailId() + "first checkout", "failed");
+            return new ApiResponse("Visitor already checked-in with email " + meetingRequest.getVisitorDto().getVisitorEmailId() + " please checkout first ", "failed");
         }
 
         //save the meeting
         saveMeeting(meetingRequest);
 
-        //send sms
-        sendSMSToHost(meetingRequest);
+        //send email and sms in different thread
+        new Thread(()->{
+            sendSmsAndMailToHost(meetingRequest);
+        }).start();
+        logger.info("mail thread initiated");
         return new ApiResponse("Meeting scheduled", "passed");
     }
 
@@ -123,15 +128,16 @@ public class MeetingService {
         }
         Meeting meeting = new Meeting(visitor.getVisitorId(), host.getHostId(), DateTime.now().toString(), null);
         meetingRepository.save(meeting);
-        sendSmsService.sendSms(host.getPhoneNumber(),"Person " + visitor.getVisitorName() + " meeting has been scheduled successfully with " + host.getHostName());
     }
 
-    private void sendSMSToHost(MeetingRequest meetingRequest) {
+
+    public void sendSmsAndMailToHost(MeetingRequest meetingRequest) {
         //send sms
         Host host = hostRepository.getHostByEmailId(meetingRequest.getHostDto().getHostEmailId());
         Visitor visitor = visitorRepository.getVisitorByEmailId(meetingRequest.getVisitorDto().getVisitorEmailId());
-        String messageToHost = "Hi " + host.getHostName() + "your meeting is scheduled with " + visitor.getVisitorName() + "having email " + visitor.getEmailId() + "and phone number " + visitor.getPhoneNumber();
-        //System.out.println(sendSmsService.sendSms(host.getPhoneNumber(), messageToHost));
-        emailService.sendEmail(new Email("Information regarding meeting scheduled",host.getEmailId(), EmailTemplate.HOST_INVITATION_TEMPLATE,visitor,null));
+        String messageToHost = "Hi " + host.getHostName() + " your meeting is scheduled with " + visitor.getVisitorName() + " having email " + visitor.getEmailId() + " and phone number " + visitor.getPhoneNumber();
+        //logger.info(sendSmsService.sendSms(host.getPhoneNumber(), messageToHost));
+        //emailService.sendEmail(new Email("Information regarding meeting scheduled", host.getEmailId(), EmailTemplate.HOST_INVITATION_TEMPLATE, visitor, "checkin"));
+        logger.info("email and sms sent");
     }
 }

@@ -14,6 +14,9 @@ public interface HostRepository extends JpaRepository<Host, Long> {
     @Query("select h from Host h where h.emailId=?1")
     Host getHostByEmailId(String hostEmailId);
 
+    @Query("select h from Host h where h.hostId=?1")
+    Host getHostByHostId(Long hostId);
+
     @Query("select count(h) from Host h where h.emailId=?1")
     Integer checkActiveHostByEmail(String hostEmailId);
 

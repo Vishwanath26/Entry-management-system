@@ -1,12 +1,12 @@
 package com.innovaccer.entryManager.Service;
 
 
-import com.innovaccer.entryManager.DTO.ApiResponse;
-import com.innovaccer.entryManager.DTO.CheckOutRequest;
-import com.innovaccer.entryManager.DTO.MeetingRequest;
-import com.innovaccer.entryManager.DTO.VisitorDto;
+import com.innovaccer.entryManager.DTO.*;
+import com.innovaccer.entryManager.Domain.Email;
+import com.innovaccer.entryManager.Domain.Host;
 import com.innovaccer.entryManager.Domain.Meeting;
 import com.innovaccer.entryManager.Domain.Visitor;
+import com.innovaccer.entryManager.Repository.HostRepository;
 import com.innovaccer.entryManager.Repository.MeetingRepository;
 import com.innovaccer.entryManager.Repository.VisitorRepository;
 import org.joda.time.DateTime;
@@ -25,6 +25,14 @@ public class CheckOutService {
     @Autowired
     MeetingRepository meetingRepository;
 
+    @Autowired
+    HostRepository hostRepository;
+
+    @Autowired
+    SendSmsService sendSmsService;
+
+    @Autowired
+    EmailService emailService;
 
     private Logger logger = LoggerFactory.getLogger(MeetingService.class.getName());
 
@@ -43,8 +51,14 @@ public class CheckOutService {
         //check for active check-in of current visitor
         boolean isCurrentVisitorAlreadyCheckedIn = isCurrentVisitorAlreadyCheckedIn(checkOutRequest.getVisitorDto());
         if (isCurrentVisitorAlreadyCheckedIn) {
-            //Main Logic JPA
+            //Main checkout call
             checkOut(checkOutRequest);
+
+            //send email in different thread
+            new Thread(() -> {
+                sendEmailToVisitor(checkOutRequest);
+            }).start();
+            logger.info("mail thread initiated");
             return new ApiResponse("Visitor checked-out with email " + checkOutRequest.getVisitorDto().getVisitorEmailId(), "passed");
         } else {
             return new ApiResponse("No visitor has active check-in with email " + checkOutRequest.getVisitorDto().getVisitorEmailId() + "First Check-In", "failed");
@@ -77,12 +91,18 @@ public class CheckOutService {
     }
 
     private void checkOut(CheckOutRequest checkOutRequest) {
+        //updates checkout time in meeting table
         Visitor visitor = visitorRepository.getVisitorByEmailId(checkOutRequest.getVisitorDto().getVisitorEmailId());
         meetingRepository.updateCheckoutTime(visitor.getVisitorId(), DateTime.now().toString());
-        Meeting meeting = (meetingRepository.getAllDetails(visitor.getVisitorId()));
+    }
+
+    private void sendEmailToVisitor(CheckOutRequest checkOutRequest) {
+        //send email regarding meeting details, host details to checked out visitor
+        Visitor visitor = visitorRepository.getVisitorByEmailId(checkOutRequest.getVisitorDto().getVisitorEmailId());
+        Meeting meeting = meetingRepository.getAllDetails(visitor.getVisitorId());
+        //emailService.sendEmail(new Email("Information regarding visit details", visitor.getEmailId(), EmailTemplate.VISITOR_CHECKOUT_TEMPLATE, visitor, "checkout"));
         meetingRepository.deleteMeeting(visitor.getVisitorId());
         visitorRepository.deleteVisitor(visitor.getVisitorId());
-
     }
 
 }

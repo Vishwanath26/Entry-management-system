@@ -14,11 +14,11 @@ public interface MeetingRepository extends JpaRepository<Meeting, Long> {
     @Query(value = "select count(m.vhmId) from Meeting m where m.visitorId=?1 and m.checkoutTime=null or m.checkoutTime=''")
     Integer getActiveCheckedInCnt(Long visitorId);
 
-    @Query(value = "select m from Meeting m where m.visitorId=?1 and m.checkoutTime=null or m.checkoutTime=''")
+    @Query(value = "select m from Meeting m where m.visitorId=?1")
     Meeting getAllDetails(Long visitorId);
 
     @Transactional
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "update Meeting m set m.checkoutTime=?2 where m.visitorId=?1")
     void updateCheckoutTime(Long visitorId, String checkoutTime);
 
@@ -26,5 +26,5 @@ public interface MeetingRepository extends JpaRepository<Meeting, Long> {
     @Modifying
     @Query(value = "delete from Meeting m where m.visitorId=?1")
     void deleteMeeting(Long visitorId);
-    //Pending Work is deletion from Visitor and host table in above function only
+
 }
