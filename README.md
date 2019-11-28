@@ -1,3 +1,5 @@
+# Copyright &copy; 2019, [Vishwanath Sharma]
+
 # Entry-management-system
 This is an entry management web application made using Java Spring-Boot, Postgre-SQL and ReactJS in frontend.
 
