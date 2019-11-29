@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
@@ -99,7 +100,8 @@ public class EmailService implements EnvironmentAware {
     }
 
     public String getEmailTemplate(String template) {
-        File file = new File("/home/vishwanath/IdeaProjects/Entry-management-system/src/main/java/com/innovaccer/entryManager/DTO/EmailTemplates/" + getTemplateType(template));
+        String userDirPath = System.getProperty("user.dir");
+        File file = new File( userDirPath +"/src/main/java/com/innovaccer/entryManager/DTO/EmailTemplates/" +  getTemplateType(template));
         String html_trimmed = "";
         Scanner scanner = null;
         try {

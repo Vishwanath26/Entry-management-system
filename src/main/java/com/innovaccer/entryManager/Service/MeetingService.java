@@ -8,7 +8,6 @@ import com.innovaccer.entryManager.Domain.Visitor;
 import com.innovaccer.entryManager.Repository.HostRepository;
 import com.innovaccer.entryManager.Repository.MeetingRepository;
 import com.innovaccer.entryManager.Repository.VisitorRepository;
-import com.innovaccer.entryManager.Service.MessageService.SmsService;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +68,7 @@ public class MeetingService {
         saveMeeting(meetingRequest);
 
         //send email and sms
-        new Thread(()->{
+        new Thread(() -> {
             sendSmsAndMailToHost(meetingRequest);
         }).start();
         logger.info("mail thread initiated");
@@ -132,12 +131,12 @@ public class MeetingService {
 
 
     public void sendSmsAndMailToHost(MeetingRequest meetingRequest) {
-        //send sms and email
+        //send sms and mail
         Host host = hostRepository.getHostByEmailId(meetingRequest.getHostDto().getHostEmailId());
         Visitor visitor = visitorRepository.getVisitorByEmailId(meetingRequest.getVisitorDto().getVisitorEmailId());
         String messageToHost = "Hi " + host.getHostName() + " your meeting is scheduled with " + visitor.getVisitorName() + " having email " + visitor.getEmailId() + " and phone number " + visitor.getPhoneNumber();
         logger.info(sendSmsService.sendSms(host.getPhoneNumber(), messageToHost));
-        emailService.sendEmail(new Email("Information regarding meSimple Floweting scheduled", host.getEmailId(), EmailTemplate.HOST_INVITATION_TEMPLATE, visitor, "checkin"));
+        emailService.sendEmail(new Email("Information regarding meeting scheduled", host.getEmailId(), EmailTemplate.HOST_INVITATION_TEMPLATE, visitor, "checkin"));
         logger.info("email ans sms sent");
     }
 }
